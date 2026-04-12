@@ -1,0 +1,30 @@
+# Build outputs
+app/build/
+build/
+.gradle/
+*.apk
+*.aab
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Local config
+local.properties
+*.keystore
+*.jks
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# KSP
+app/build/generated/
+# Gradle wrapper only (not full distribution)
+gradle-8.2/

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Wallpaper permissions -->
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <uses-permission android:name="android.permission.SET_WALLPAPER_HINTS" />
+    
+    <!-- Storage permissions -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    
+    <!-- Boot receiver -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    
+    <!-- Alarm permissions -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    
+    <!-- Network state -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    
+    <!-- Overlay permission for floating bubble -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    
+    <!-- Foreground service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    
+    <!-- Battery optimization -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <application
+        android:name=".AutoWallpaperApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AutoWallpaperChanger"
+        tools:targetApi="34">
+
+        <activity
+            android:name=".presentation.screens.splash.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AutoWallpaperChanger.Fullscreen">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:resizeableActivity="true"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:theme="@style/Theme.AutoWallpaperChanger" />
+
+        <activity
+            android:name=".presentation.screens.slideshow.SlideshowActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AutoWallpaperChanger.Fullscreen"
+            android:configChanges="orientation|screenSize" />
+
+        <!-- Boot Receiver -->
+        <receiver
+            android:name=".service.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Schedule Receiver -->
+        <receiver
+            android:name=".service.ScheduleReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.autowallpaper.changer.ACTION_WALLPAPER_CHANGE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Floating Bubble Service -->
+        <service
+            android:name=".service.FloatingBallService"
+            android:exported="false" />
+
+        <!-- WorkManager Initializer removed - using custom Configuration.Provider in Application class -->
+
+    </application>
+
+</manifest>
