@@ -22,16 +22,24 @@ class ChangeWallpaperUseCase @Inject constructor(
     private val wallpaperManager = WallpaperManager.getInstance(context)
 
     suspend fun changeHomeScreen(imageUri: android.net.Uri): Result<Unit> = withContext(Dispatchers.IO) {
+        android.util.Log.i("ChangeWallpaperUseCase", "changeHomeScreen() called with uri: $imageUri")
+        
         try {
-            val bitmap = loadBitmap(imageUri) ?: return@withContext Result.failure(
-                IOException("Failed to load image")
-            )
+            val bitmap = loadBitmap(imageUri)
+            if (bitmap == null) {
+                android.util.Log.e("ChangeWallpaperUseCase", "loadBitmap() returned null")
+                return@withContext Result.failure(IOException("Failed to load image"))
+            }
+            
+            android.util.Log.i("ChangeWallpaperUseCase", "Bitmap loaded successfully, size: ${bitmap.width}x${bitmap.height}")
 
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM)
+                    android.util.Log.i("ChangeWallpaperUseCase", "setBitmap() called on N+")
                 } else {
                     wallpaperManager.setBitmap(bitmap)
+                    android.util.Log.i("ChangeWallpaperUseCase", "setBitmap() called on legacy")
                 }
 
                 try {
