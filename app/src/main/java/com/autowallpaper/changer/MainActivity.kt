@@ -1,6 +1,7 @@
 package com.autowallpaper.changer
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -20,8 +21,13 @@ import com.autowallpaper.changer.presentation.AutoWallpaperTheme
 import com.autowallpaper.changer.presentation.navigation.MainNavigation
 import com.autowallpaper.changer.service.AnalyticsService
 import com.autowallpaper.changer.service.ForceUpdateDialog
+import com.autowallpaper.changer.service.FloatingBallService
 import com.autowallpaper.changer.service.VersionCheckWorker
+import com.autowallpaper.changer.service.WallpaperScheduler
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -39,6 +45,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        // 0. 恢復背景服務（在其他初始化之前）
+        restoreBackgroundServices()
         
         // 1. 追蹤 Analytics
         AnalyticsService.trackInstall(this)
@@ -72,6 +81,30 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         // 每次回到 App 都檢查是否被阻擋
         ForceUpdateDialog.checkAndShow(this)
+    }
+    
+    private fun restoreBackgroundServices() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // 恢復排程
+                val prefs = getSharedPreferences("wallpaper_scheduler_prefs", Context.MODE_PRIVATE)
+                val interval = prefs.getInt("schedule_interval_seconds", 0)
+                if (interval > 0) {
+                    val scheduler = WallpaperScheduler(applicationContext)
+                    scheduler.startWithSeconds(interval)
+                }
+                
+                // 恢復懸浮球
+                val bubblePrefs = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+                val bubbleEnabled = bubblePrefs.getBoolean("quick_change_bubble", false)
+                if (bubbleEnabled) {
+                    val intent = android.content.Intent(applicationContext, FloatingBallService::class.java)
+                    startService(intent)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     private fun requestRequiredPermissions() {
