@@ -19,7 +19,9 @@ data class LibraryUiState(
     val images: List<WallpaperItem> = emptyList(),
     val isLoading: Boolean = false,
     val previewImage: WallpaperItem? = null,
-    val message: String? = null
+    val message: String? = null,
+    val debugMode: Boolean = false,
+    val deleteImage: WallpaperItem? = null
 )
 
 @HiltViewModel
@@ -41,7 +43,8 @@ class LibraryViewModel @Inject constructor(
         viewModelScope.launch {
             settingsDataStore.settings.collect { settings ->
                 _uiState.update { it.copy(
-                    selectedFolders = settings.selectedHomeFolders
+                    selectedFolders = settings.selectedHomeFolders,
+                    debugMode = settings.debugMode
                 )}
             }
         }
@@ -58,12 +61,17 @@ class LibraryViewModel @Inject constructor(
             }
         }
     }
+    
+    fun reloadImages() {
+        loadImages()
+    }
 
     fun addFolder(folderUri: Uri) {
         viewModelScope.launch {
             try {
-                // Take persistable URI permission for SAF access
-                val flags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                // Take persistable URI permission for SAF access (包含寫入權限)
+                val flags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or 
+                            android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 context.contentResolver.takePersistableUriPermission(folderUri, flags)
             } catch (e: Exception) {
                 // Permission might not be persistable, continue anyway
@@ -105,5 +113,53 @@ class LibraryViewModel @Inject constructor(
 
     fun clearMessage() {
         _uiState.update { it.copy(message = null) }
+    }
+    
+    fun isAutoWallpaperFolderAdded(): Boolean {
+        // 檢查 selectedFolders 中是否已包含 AutoWallpaper 相關路徑
+        val selectedFolders = _uiState.value.selectedFolders
+        return selectedFolders.any { folder ->
+            folder.contains("AutoWallpaper", ignoreCase = true) ||
+            folder.contains("Pictures", ignoreCase = true)
+        }
+    }
+    
+    fun deleteImage(image: WallpaperItem): Boolean {
+        // 使用 DocumentFile 來刪除 SAF 管理的檔案
+        return try {
+            val documentFile = androidx.documentfile.provider.DocumentFile.fromSingleUri(context, image.uri)
+            if (documentFile != null && documentFile.exists()) {
+                val deleted = documentFile.delete()
+                if (deleted) {
+                    loadImages()
+                }
+                deleted
+            } else {
+                // 如果 DocumentFile 無效，嘗試用 contentResolver
+                val deleted = context.contentResolver.delete(image.uri, null, null) > 0
+                if (deleted) {
+                    loadImages()
+                }
+                deleted
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+    
+    fun setDeleteImage(image: WallpaperItem) {
+        _uiState.update { it.copy(deleteImage = image) }
+    }
+    
+    fun clearDeleteImage() {
+        _uiState.update { it.copy(deleteImage = null) }
+    }
+    
+    fun confirmDelete(): Boolean {
+        val imageToDelete = _uiState.value.deleteImage ?: return false
+        val result = deleteImage(imageToDelete)
+        clearDeleteImage()
+        return result
     }
 }
