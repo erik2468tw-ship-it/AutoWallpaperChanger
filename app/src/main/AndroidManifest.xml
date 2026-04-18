@@ -76,7 +76,9 @@
         <!-- Schedule Receiver -->
         <receiver
             android:name=".service.ScheduleReceiver"
-            android:exported="false">
+            android:exported="false"
+            android:enabled="true"
+            android:directBootAware="false">
             <intent-filter>
                 <action android:name="com.autowallpaper.changer.ACTION_WALLPAPER_CHANGE" />
                 <action android:name="com.autowallpaper.changer.ACTION_TRIGGER_NOW" />
@@ -87,6 +89,7 @@
         <service
             android:name=".service.FloatingBallService"
             android:exported="false"
+            android:stopWithTask="false"
             android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="overlay"/>
         </service>
