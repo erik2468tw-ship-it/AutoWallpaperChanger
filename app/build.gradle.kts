@@ -13,13 +13,16 @@ android {
         applicationId = "com.autowallpaper.changer"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "1.0.7"
+        versionCode = 5
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
+        
+        // Build config for API base URL
+        buildConfigField("String", "API_BASE_URL", "\"${project.findProperty("API_BASE_URL") ?: "http://localhost:3000/"}\"")
     }
 
     buildTypes {
@@ -46,6 +49,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -106,6 +110,11 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Retrofit (for API calls)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // DocumentFile for SAF folder scanning
     implementation("androidx.documentfile:documentfile:1.0.1")
