@@ -53,10 +53,10 @@ class HomeViewModel @Inject constructor(
                 val folderCount = settings.selectedHomeFolders.size
                 _uiState.update { it.copy(
                     selectedFolders = folderCount,
-                    intervalDisplay = formatInterval(settings.scheduleIntervalMinutes),
+                    intervalDisplay = formatInterval(settings.scheduleIntervalSeconds),
                     shuffleEnabled = settings.shuffleEnabled,
                     quickChangeBubbleEnabled = settings.quickChangeBubbleEnabled,
-                    isSchedulerActive = settings.scheduleIntervalMinutes > 0
+                    isSchedulerActive = settings.scheduleIntervalSeconds > 0
                 )}
                 loadData()
             }
@@ -155,6 +155,19 @@ class HomeViewModel @Inject constructor(
                     message = "錯誤: ${e.message}",
                     isLoading = false
                 )}
+            }
+        }
+    }
+    
+    fun testScheduleNow() {
+        _uiState.update { it.copy(message = "執行排程中...") }
+        // 使用 AlarmManager 立即執行一次排程
+        viewModelScope.launch {
+            try {
+                wallpaperScheduler.runNow()
+                _uiState.update { it.copy(message = "排程已觸發，請等待...") }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(message = "錯誤: ${e.message}") }
             }
         }
     }

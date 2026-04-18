@@ -92,6 +92,12 @@ fun HomeScreen(
                 onClick = { viewModel.changeLockScreenNow() },
                 modifier = Modifier.weight(1f)
             )
+            QuickActionCard(
+                title = "測試排程",
+                icon = Icons.Default.PlayArrow,
+                onClick = { viewModel.changeHomeScreenNow() },
+                modifier = Modifier.weight(1f)
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
