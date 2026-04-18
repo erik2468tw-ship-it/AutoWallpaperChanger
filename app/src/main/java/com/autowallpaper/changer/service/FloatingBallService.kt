@@ -118,7 +118,7 @@ class FloatingBallService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("懸浮球已啟用")
             .setContentText("點擊懸浮球可快速更換桌布")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.floating_ball_icon)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -129,7 +129,7 @@ class FloatingBallService : Service() {
     private fun createFloatingBubble() {
         try {
             floatingView = ImageView(this).apply {
-                setImageResource(R.drawable.ic_launcher_foreground)
+                setImageResource(R.drawable.floating_ball_icon)
                 alpha = 0.5f
             }
             
