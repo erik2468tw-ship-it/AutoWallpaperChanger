@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext traffic for the wallpaper backend server -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">203.222.24.35</domain>
+    </domain-config>
+</network-security-config>
