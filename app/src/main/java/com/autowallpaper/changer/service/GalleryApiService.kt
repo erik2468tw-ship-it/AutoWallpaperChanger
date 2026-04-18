@@ -98,13 +98,13 @@ object GalleryApiService {
     class ImageAlreadyExistsException : Exception("Image already downloaded")
     
     /**
-     * 獲取分類列表
+     * 獲取分類列表（支援新階層格式）
      */
-    suspend fun getCategories(): Result<List<Category>> = withContext(Dispatchers.IO) {
+    suspend fun getCategories(): Result<CategoriesResponse> = withContext(Dispatchers.IO) {
         try {
             val response = api.getCategories().execute()
             if (response.isSuccessful) {
-                Result.success(response.body()!!.categories)
+                Result.success(response.body()!!)
             } else {
                 Result.failure(Exception("API error"))
             }
@@ -112,6 +112,28 @@ object GalleryApiService {
             Result.failure(e)
         }
     }
+    
+    /**
+     * 解析分類階層（從新的 hierarchy 格式）
+     */
+    data class CategoryHierarchy(
+        val style: CategoryGroup?,
+        val scene: CategoryGroup?,
+        val theme: CategoryGroup?,
+        val country: CategoryGroup?
+    )
+    
+    data class CategoryGroup(
+        val name: String,
+        val icon: String?,
+        val categories: List<CategoryItem>
+    )
+    
+    data class CategoryItem(
+        val id: String,
+        val name: String,
+        val count: Int
+    )
 
     /**
      * 下載圖片到本地
@@ -292,5 +314,24 @@ object GalleryApiService {
         fun downloadImage(@Url url: String): retrofit2.Call<okhttp3.ResponseBody>
     }
 
-    data class CategoriesResponse(val categories: List<Category>)
+    data class CategoriesResponse(
+        val hierarchy: Map<String, CategoryGroup>?,
+        val names: Map<String, String>?
+    ) {
+        // 取得所有分類（攤平成列表）
+        fun getAllCategories(): List<Category> {
+            val result = mutableListOf<Category>()
+            hierarchy?.forEach { (_, group) ->
+                group.categories?.forEach { item ->
+                    result.add(Category(item.id, item.name, item.count))
+                }
+            }
+            return result.sortedBy { it.category }
+        }
+        
+        // 取得大分類列表
+        fun getGroups(): List<Pair<String, CategoryGroup>> {
+            return hierarchy?.map { it.key to it.value } ?: emptyList()
+        }
+    }
 }

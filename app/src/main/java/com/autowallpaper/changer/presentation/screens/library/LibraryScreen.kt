@@ -52,6 +52,9 @@ fun LibraryScreen(
     var isLoadingOnline by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var categories by remember { mutableStateOf<List<GalleryApiService.Category>>(emptyList()) }
+    var categoryGroups by remember { mutableStateOf<List<Pair<String, GalleryApiService.CategoryGroup>>>(emptyList()) }
+    var selectedGroup by remember { mutableStateOf<String?>("style") }
+    var categoryNames by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var debugInfo by remember { mutableStateOf<String?>(null) }
     var previewOnlineImage by remember { mutableStateOf<GalleryApiService.GalleryImage?>(null) }
 
@@ -73,7 +76,11 @@ fun LibraryScreen(
 
     // 載入線上圖庫分類
     LaunchedEffect(Unit) {
-        GalleryApiService.getCategories().onSuccess { categories = it }
+        GalleryApiService.getCategories().onSuccess { response ->
+            categories = response.getAllCategories()
+            categoryGroups = response.getGroups()
+            categoryNames = response.names ?: emptyMap()
+        }
     }
 
     Column(
@@ -118,10 +125,14 @@ fun LibraryScreen(
             1 -> OnlineGalleryContent(
                 images = onlineImages,
                 categories = categories,
+                categoryGroups = categoryGroups,
+                categoryNames = categoryNames,
+                selectedGroup = selectedGroup,
                 selectedCategory = selectedCategory,
                 isLoading = isLoadingOnline,
                 debugMode = uiState.debugMode,
                 debugInfo = debugInfo,
+                onGroupSelected = { selectedGroup = it },
                 onCategorySelected = { category ->
                     selectedCategory = category
                     debugInfo = "Debug: 切換分類中..."
@@ -432,10 +443,14 @@ private fun LocalLibraryContent(
 private fun OnlineGalleryContent(
     images: List<GalleryApiService.GalleryImage>,
     categories: List<GalleryApiService.Category>,
+    categoryGroups: List<Pair<String, GalleryApiService.CategoryGroup>>,
+    categoryNames: Map<String, String>,
+    selectedGroup: String?,
     selectedCategory: String?,
     isLoading: Boolean,
     debugMode: Boolean,
     debugInfo: String?,
+    onGroupSelected: (String?) -> Unit,
     onCategorySelected: (String?) -> Unit,
     onPreview: (GalleryApiService.GalleryImage) -> Unit,
     onRefresh: () -> Unit
@@ -473,27 +488,84 @@ private fun OnlineGalleryContent(
             }
         }
 
-        // Category Chips
-        if (categories.isNotEmpty()) {
-            LazyRow(
+        // 分類選擇器（雙層）
+        if (categoryGroups.isNotEmpty()) {
+            // 大分類下拉選單
+            var expandedGroup by remember { mutableStateOf(false) }
+            var expandedCategory by remember { mutableStateOf(false) }
+            
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                item {
-                    FilterChip(
-                        selected = selectedCategory == null,
-                        onClick = { onCategorySelected(null) },
-                        label = { Text("全部") }
+                // 大分類下拉
+                Box {
+                    OutlinedTextField(
+                        value = categoryGroups.find { it.first == selectedGroup }?.second?.name ?: "選擇大分類",
+                        onValueChange = {},
+                        readOnly = true,
+                        modifier = Modifier.weight(1f),
+                        trailingIcon = {
+                            IconButton(onClick = { expandedGroup = true }) {
+                                Icon(Icons.Default.ArrowDropDown, "下拉")
+                            }
+                        }
                     )
+                    DropdownMenu(
+                        expanded = expandedGroup,
+                        onDismissRequest = { expandedGroup = false }
+                    ) {
+                        categoryGroups.forEach { (key, group) ->
+                            DropdownMenuItem(
+                                text = { Text(group.name) },
+                                onClick = {
+                                    onGroupSelected(key)
+                                    expandedGroup = false
+                                }
+                            )
+                        }
+                    }
                 }
-                items(categories) { category ->
-                    FilterChip(
-                        selected = selectedCategory == category.category,
-                        onClick = { onCategorySelected(category.category) },
-                        label = { Text("${category.category} (${category.count})") }
+                
+                // 小分類下拉
+                val selectedGroupData = categoryGroups.find { it.first == selectedGroup }?.second
+                Box {
+                    OutlinedTextField(
+                        value = selectedCategory?.let { categoryNames[it] ?: it } ?: "選擇小分類",
+                        onValueChange = {},
+                        readOnly = true,
+                        modifier = Modifier.weight(1f),
+                        enabled = selectedGroup != null && selectedGroupData != null,
+                        trailingIcon = {
+                            IconButton(onClick = { if (selectedGroup != null) expandedCategory = true }) {
+                                Icon(Icons.Default.ArrowDropDown, "下拉")
+                            }
+                        }
                     )
+                    DropdownMenu(
+                        expanded = expandedCategory,
+                        onDismissRequest = { expandedCategory = false }
+                    ) {
+                        // 加入「全部」選項
+                        DropdownMenuItem(
+                            text = { Text("全部") },
+                            onClick = {
+                                onCategorySelected(null)
+                                expandedCategory = false
+                            }
+                        )
+                        selectedGroupData?.categories?.forEach { cat ->
+                            DropdownMenuItem(
+                                text = { Text("${cat.name} (${cat.count})") },
+                                onClick = {
+                                    onCategorySelected(cat.id)
+                                    expandedCategory = false
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
