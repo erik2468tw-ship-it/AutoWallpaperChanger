@@ -19,6 +19,11 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    
+    // Reload data when screen is displayed (to reflect downloaded images)
+    LaunchedEffect(Unit) {
+        viewModel.refreshData()
+    }
 
     Column(
         modifier = Modifier

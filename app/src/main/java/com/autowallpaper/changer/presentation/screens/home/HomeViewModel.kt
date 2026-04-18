@@ -86,6 +86,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun refreshData() {
+        loadData()
+    }
+    
     private fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
