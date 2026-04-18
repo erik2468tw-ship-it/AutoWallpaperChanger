@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.app.WallpaperManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -47,7 +48,6 @@ class FloatingBallService : Service() {
     private var windowManager: WindowManager? = null
     private var floatingView: ImageView? = null
     private var isBubbleCreated = false
-    private var isServiceReady = false
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val mainHandler = Handler(Looper.getMainLooper())
     
@@ -61,35 +61,47 @@ class FloatingBallService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        isServiceReady = true
-        createNotificationChannel()
+        try {
+            windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+            createNotificationChannel()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (!isBubbleCreated) {
-            createFloatingBubble()
+        try {
+            if (!isBubbleCreated) {
+                createFloatingBubble()
+            }
+            
+            // 啟動前景服務並顯示通知
+            val notification = createNotification()
+            startForeground(NOTIFICATION_ID, notification)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // 如果 startForeground 失敗，至少讓服務繼續運行
         }
-        
-        // 啟動前景服務並顯示通知
-        val notification = createNotification()
-        startForeground(NOTIFICATION_ID, notification)
         
         return START_STICKY
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "懸浮球服務",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "懸浮球快速換圖服務"
-                setShowBadge(false)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    CHANNEL_ID,
+                    "懸浮球服務",
+                    NotificationManager.IMPORTANCE_LOW
+                ).apply {
+                    description = "懸浮球快速換圖服務"
+                    setShowBadge(false)
+                }
+                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.createNotificationChannel(channel)
             }
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -106,7 +118,7 @@ class FloatingBallService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("懸浮球已啟用")
             .setContentText("點擊懸浮球可快速更換桌布")
-            .setSmallIcon(R.drawable.floating_ball_icon)
+            .setSmallIcon(R.drawable.floating_ball_circle)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -117,19 +129,21 @@ class FloatingBallService : Service() {
     private fun createFloatingBubble() {
         try {
             floatingView = ImageView(this).apply {
-                setImageResource(R.drawable.floating_ball_icon)
-                alpha = 0.7f  // 70% transparency
+                setImageResource(R.drawable.floating_ball_circle)
+                alpha = 0.7f
+            }
+            
+            val windowType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            } else {
+                @Suppress("DEPRECATION")
+                WindowManager.LayoutParams.TYPE_PHONE
             }
             
             layoutParams = WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-                } else {
-                    @Suppress("DEPRECATION")
-                    WindowManager.LayoutParams.TYPE_PHONE
-                },
+                windowType,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                         WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                         WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
@@ -242,14 +256,11 @@ class FloatingBallService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        isServiceReady = false
         serviceScope.cancel()
-        // Safety check - only remove view if it was actually created
         if (isBubbleCreated && floatingView != null) {
             try {
                 windowManager?.removeView(floatingView)
             } catch (e: Exception) {
-                // View might already be removed or never added
                 e.printStackTrace()
             }
             floatingView = null
