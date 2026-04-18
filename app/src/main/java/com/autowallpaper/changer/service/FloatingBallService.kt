@@ -1,5 +1,9 @@
 package com.autowallpaper.changer.service
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.app.WallpaperManager
 import android.content.Intent
@@ -14,10 +18,11 @@ import android.os.Looper
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
-import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.core.app.NotificationCompat
+import com.autowallpaper.changer.MainActivity
 import com.autowallpaper.changer.R
 import com.autowallpaper.changer.data.preferences.SettingsDataStore
 import com.autowallpaper.changer.domain.usecase.GetImagesUseCase
@@ -27,6 +32,11 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class FloatingBallService : Service() {
+
+    companion object {
+        private const val CHANNEL_ID = "floating_ball_channel"
+        private const val NOTIFICATION_ID = 1001
+    }
 
     @Inject
     lateinit var getImagesUseCase: GetImagesUseCase
@@ -53,20 +63,62 @@ class FloatingBallService : Service() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         isServiceReady = true
+        createNotificationChannel()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (!isBubbleCreated) {
             createFloatingBubble()
         }
+        
+        // 啟動前景服務並顯示通知
+        val notification = createNotification()
+        startForeground(NOTIFICATION_ID, notification)
+        
         return START_STICKY
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "懸浮球服務",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "懸浮球快速換圖服務"
+                setShowBadge(false)
+            }
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun createNotification(): Notification {
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("懸浮球已啟用")
+            .setContentText("點擊懸浮球可快速更換桌布")
+            .setSmallIcon(R.drawable.floating_ball_icon)
+            .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .build()
     }
 
     private fun createFloatingBubble() {
         try {
             floatingView = ImageView(this).apply {
                 setImageResource(R.drawable.floating_ball_icon)
-                alpha = 0.5f  // 50% transparency
+                alpha = 0.7f  // 70% transparency
             }
             
             layoutParams = WindowManager.LayoutParams(
@@ -131,10 +183,6 @@ class FloatingBallService : Service() {
             layoutParams?.let { params ->
                 windowManager?.addView(floatingView, params)
                 isBubbleCreated = true
-            }
-            
-            mainHandler.post {
-                Toast.makeText(this, "懸浮球已啟用", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             e.printStackTrace()
