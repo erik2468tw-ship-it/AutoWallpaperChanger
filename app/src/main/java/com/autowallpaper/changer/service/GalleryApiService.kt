@@ -199,6 +199,22 @@ object GalleryApiService {
             resolver.update(imageUri, contentValues, null, null)
             
             Log.d(TAG, "Downloaded to gallery: $imageUri")
+            
+            // 下載成功後，通知後端增加下載次數
+            try {
+                // 從 imageUrl 解析出檔案名稱
+                val filename = imageUrl.substringAfterLast("/")
+                // 使用 OkHttp 直接呼叫 API
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url("${BuildConfig.API_BASE_URL}api/gallery/increment-download?filename=$filename")
+                    .get()
+                    .build()
+                client.newCall(request).execute()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to increment download count", e)
+            }
+            
             Result.success(imageUri)
         } catch (e: Exception) {
             Log.e(TAG, "Download to gallery failed", e)
