@@ -57,14 +57,6 @@ fun SettingsScreen(
         SettingsSectionHeader(title = "電力")
         SettingsCard {
             SettingsSwitchItem(
-                title = "僅 Wi-Fi 下載",
-                subtitle = "行動網路時暫停下載",
-                icon = Icons.Default.Wifi,
-                checked = uiState.wifiOnlyDownload,
-                onCheckedChange = { viewModel.setWifiOnly(it) }
-            )
-            HorizontalDivider()
-            SettingsSwitchItem(
                 title = "低電量暫停",
                 subtitle = "電量低於 ${uiState.lowBatteryThreshold}% 時暫停自動更換",
                 icon = Icons.Default.BatteryAlert,
@@ -124,6 +116,20 @@ fun SettingsScreen(
                 onClick = {
                     ROMUtils.openAppSettings(context)
                 }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Debug Section
+        SettingsSectionHeader(title = "開發者選項")
+        SettingsCard {
+            SettingsSwitchItem(
+                title = "DEBUG 模式",
+                subtitle = "顯示詳細除錯資訊",
+                icon = Icons.Default.BugReport,
+                checked = uiState.debugMode,
+                onCheckedChange = { viewModel.setDebugMode(it) }
             )
         }
 
@@ -234,7 +240,7 @@ fun SettingsScreen(
             onDismissRequest = { showHelpDialog = false },
             title = { Text("軟體使用說明") },
             text = {
-                Column {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                     Text("📱 自動換桌布", style = MaterialTheme.typography.titleSmall)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text("1. 選擇要使用的圖片資料夾\n2. 設定自動更換間隔時間\n3. 開啟自動更換功能")
@@ -242,6 +248,14 @@ fun SettingsScreen(
                     Text("🎯 懸浮球快速換圖", style = MaterialTheme.typography.titleSmall)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text("1. 在首頁開啟懸浮球功能\n2. 首次使用需授權「顯示在其他應用程式上」\n3. 點擊懸浮球立即更換主螢幕桌布\n4. 拖曳懸浮球可移動位置")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("🖼️ 線上圖庫下載", style = MaterialTheme.typography.titleSmall)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("1. 進入「圖庫」頁面\n2. 瀏覽線上圖庫，點擊圖片可下載\n3. 下載後圖片會存到「AutoWallpaper」資料夾\n4. 建議將 AutoWallpaper 資料夾加入圖片庫")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("📁 資料夾設定", style = MaterialTheme.typography.titleSmall)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("1. 加入資料夾後，圖片會出現在本地圖庫\n2. 可刪除已加入的資料夾\n3. 下載的圖片會自動添加到本地圖庫")
                     Spacer(modifier = Modifier.height(16.dp))
                     Text("🖼️ 電子相簿", style = MaterialTheme.typography.titleSmall)
                     Spacer(modifier = Modifier.height(4.dp))

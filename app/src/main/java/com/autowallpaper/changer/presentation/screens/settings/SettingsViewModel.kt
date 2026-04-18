@@ -18,7 +18,8 @@ data class SettingsUiState(
     val lowBatteryThreshold: Int = 20,
     val autoClearCache: Boolean = true,
     val cacheMaxDays: Int = 7,
-    val appVersion: String = "1.0.0"
+    val appVersion: String = "1.0.0",
+    val debugMode: Boolean = false
 )
 
 @HiltViewModel
@@ -44,7 +45,8 @@ class SettingsViewModel @Inject constructor(
                     lowBatteryPause = settings.lowBatteryPause,
                     lowBatteryThreshold = settings.lowBatteryThreshold,
                     autoClearCache = settings.autoClearCache,
-                    cacheMaxDays = settings.cacheMaxDays
+                    cacheMaxDays = settings.cacheMaxDays,
+                    debugMode = settings.debugMode
                 )}
             }
         }
@@ -98,6 +100,13 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             settingsDataStore.updateCacheMaxDays(days)
             _uiState.update { it.copy(cacheMaxDays = days) }
+        }
+    }
+    
+    fun setDebugMode(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.updateDebugMode(enabled)
+            _uiState.update { it.copy(debugMode = enabled) }
         }
     }
 }
