@@ -162,4 +162,24 @@ class LibraryViewModel @Inject constructor(
         clearDeleteImage()
         return result
     }
+    
+    fun setWallpaperFromLocal(image: WallpaperItem, target: String) {
+        viewModelScope.launch {
+            try {
+                val wallpaperManager = android.app.WallpaperManager.getInstance(context)
+                val flag = when (target) {
+                    "home" -> android.app.WallpaperManager.FLAG_SYSTEM
+                    "lock" -> android.app.WallpaperManager.FLAG_LOCK
+                    else -> 0
+                }
+                
+                context.contentResolver.openInputStream(image.uri)?.use { input ->
+                    wallpaperManager.setStream(input, null, true, flag)
+                }
+                _uiState.update { it.copy(message = "已設為${if (target == "home") "主螢幕" else "鎖屏"}桌布") }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(message = "設定桌布失敗: ${e.message}") }
+            }
+        }
+    }
 }

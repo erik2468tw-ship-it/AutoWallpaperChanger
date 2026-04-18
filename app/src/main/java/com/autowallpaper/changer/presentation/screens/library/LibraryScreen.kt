@@ -421,10 +421,29 @@ private fun LocalLibraryContent(
         AlertDialog(
             onDismissRequest = { viewModel.dismissPreview() },
             confirmButton = {
-                TextButton(onClick = { viewModel.dismissPreview() }) {
-                    Text("關閉")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(
+                        onClick = {
+                            viewModel.setWallpaperFromLocal(uiState.previewImage!!, "home")
+                            viewModel.dismissPreview()
+                        }
+                    ) {
+                        Text("主螢幕")
+                    }
+                    TextButton(
+                        onClick = {
+                            viewModel.setWallpaperFromLocal(uiState.previewImage!!, "lock")
+                            viewModel.dismissPreview()
+                        }
+                    ) {
+                        Text("鎖屏")
+                    }
+                    TextButton(onClick = { viewModel.dismissPreview() }) {
+                        Text("關閉")
+                    }
                 }
             },
+            title = { Text("設定為桌布") },
             text = {
                 AsyncImage(
                     model = uiState.previewImage!!.uri,
