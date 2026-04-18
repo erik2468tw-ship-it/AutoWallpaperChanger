@@ -79,11 +79,13 @@ fun ScheduleScreen(
             ) {
                 // Preset intervals (in seconds)
                 val intervals = listOf(
+                    5 to "5 秒",
                     30 to "30 秒",
                     60 to "1 分鐘",
                     300 to "5 分鐘",
                     900 to "15 分鐘",
-                    1800 to "30 分鐘"
+                    1800 to "30 分鐘",
+                    3600 to "1 小時"
                 )
 
                 intervals.forEach { (seconds, label) ->
@@ -103,7 +105,7 @@ fun ScheduleScreen(
                     }
                 }
 
-                // Custom interval
+                // Custom interval (in hours)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -117,7 +119,10 @@ fun ScheduleScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (uiState.isCustomInterval) "自定義: ${uiState.customIntervalSeconds} 秒" else "自定義..."
+                        text = if (uiState.isCustomInterval) {
+                            val hours = uiState.customIntervalSeconds / 3600
+                            "自定義: ${hours} 小時"
+                        } else "自定義(小時)..."
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     if (uiState.isCustomInterval) {
@@ -213,26 +218,28 @@ fun ScheduleScreen(
         }
     }
 
-    // Custom Interval Dialog
+    // Custom Interval Dialog (in hours)
     if (showCustomDialog) {
-        var customValue by remember { mutableStateOf(uiState.customIntervalSeconds.toString()) }
+        var customValue by remember { mutableStateOf((uiState.customIntervalSeconds / 3600).toString()) }
 
         AlertDialog(
             onDismissRequest = { showCustomDialog = false },
-            title = { Text("自定義間隔") },
+            title = { Text("自定義間隔 (小時)") },
             text = {
                 OutlinedTextField(
                     value = customValue,
                     onValueChange = { customValue = it.filter { c -> c.isDigit() } },
-                    label = { Text("秒") },
+                    label = { Text("小時") },
                     singleLine = true
                 )
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        customValue.toIntOrNull()?.let { seconds ->
-                            if (seconds > 0) {
+                        customValue.toIntOrNull()?.let { hours ->
+                            if (hours > 0) {
+                                // 轉換為秒並儲存
+                                val seconds = hours * 3600
                                 viewModel.setCustomIntervalSeconds(seconds)
                                 viewModel.setCustomInterval(true)
                             }

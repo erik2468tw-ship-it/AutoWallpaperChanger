@@ -41,10 +41,10 @@ class ScheduleViewModel @Inject constructor(
         viewModelScope.launch {
             settingsDataStore.settings.collect { settings ->
                 _uiState.update { it.copy(
-                    isEnabled = settings.scheduleIntervalMinutes > 0,
+                    isEnabled = settings.scheduleIntervalSeconds > 0,
                     changeHomeScreen = settings.changeHomeScreen,
                     changeLockScreen = settings.changeLockScreen,
-                    intervalSeconds = settings.scheduleIntervalMinutes,
+                    intervalSeconds = settings.scheduleIntervalSeconds,
                     slideshowIntervalSeconds = settings.slideshowIntervalSeconds,
                     isLoading = false
                 )}
@@ -65,7 +65,8 @@ class ScheduleViewModel @Inject constructor(
             viewModelScope.launch {
                 settingsDataStore.updateScheduleInterval(interval)
             }
-            wallpaperScheduler.start(interval)
+            // 直接傳秒給 WallpaperScheduler（使用 AlarmManager）
+            wallpaperScheduler.startWithSeconds(interval)
         } else {
             // Save 0 to DataStore to indicate disabled
             viewModelScope.launch {
@@ -81,7 +82,8 @@ class ScheduleViewModel @Inject constructor(
         }
         _uiState.update { it.copy(intervalSeconds = seconds) }
         if (_uiState.value.isEnabled) {
-            wallpaperScheduler.start(seconds)
+            // 直接傳秒給 WallpaperScheduler
+            wallpaperScheduler.startWithSeconds(seconds)
         }
     }
 
@@ -95,7 +97,8 @@ class ScheduleViewModel @Inject constructor(
         }
         _uiState.update { it.copy(customIntervalSeconds = seconds) }
         if (_uiState.value.isEnabled && _uiState.value.isCustomInterval) {
-            wallpaperScheduler.start(seconds)
+            // 直接傳秒給 WallpaperScheduler
+            wallpaperScheduler.startWithSeconds(seconds)
         }
     }
 
