@@ -73,6 +73,16 @@
             </intent-filter>
         </receiver>
 
+        <!-- Screen State Receiver -->
+        <receiver
+            android:name=".service.ScreenStateReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.SCREEN_OFF" />
+                <action android:name="android.intent.action.SCREEN_ON" />
+            </intent-filter>
+        </receiver>
+
         <!-- Schedule Receiver -->
         <receiver
             android:name=".service.ScheduleReceiver"

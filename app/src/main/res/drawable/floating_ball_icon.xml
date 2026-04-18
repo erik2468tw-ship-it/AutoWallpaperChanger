@@ -2,14 +2,15 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="oval">
-            <solid android:color="#00000000" />
+            <solid android:color="#80FFFFFF" />
             <size
                 android:width="48dp"
                 android:height="48dp" />
         </shape>
     </item>
-    <item android:drawable="@drawable/ic_launcher_foreground"
+    <item 
+        android:drawable="@drawable/ic_launcher_foreground"
         android:gravity="center"
-        android:width="48dp"
-        android:height="48dp" />
+        android:width="40dp"
+        android:height="40dp" />
 </layer-list>
