@@ -92,12 +92,6 @@ fun HomeScreen(
                 onClick = { viewModel.changeLockScreenNow() },
                 modifier = Modifier.weight(1f)
             )
-            QuickActionCard(
-                title = "隨機更換",
-                icon = Icons.Default.Shuffle,
-                onClick = { viewModel.changeRandomNow() },
-                modifier = Modifier.weight(1f)
-            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
