@@ -39,6 +39,7 @@ class SettingsDataStore @Inject constructor(
         val SLIDESHOW_INTERVAL = intPreferencesKey("slideshow_interval")
         val SHUFFLE_ENABLED = booleanPreferencesKey("shuffle_enabled")
         val QUICK_CHANGE_BUBBLE = booleanPreferencesKey("quick_change_bubble")
+        val DEBUG_MODE = booleanPreferencesKey("debug_mode")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -57,10 +58,11 @@ class SettingsDataStore @Inject constructor(
             selectedLockFolders = prefs[Keys.SELECTED_LOCK_FOLDERS]?.toList() ?: emptyList(),
             excludedFolders = prefs[Keys.EXCLUDED_FOLDERS]?.toList() ?: emptyList(),
             seasonalTags = prefs[Keys.SEASONAL_TAGS]?.toList() ?: emptyList(),
-            scheduleIntervalMinutes = prefs[Keys.SCHEDULE_INTERVAL] ?: 30,
+            scheduleIntervalSeconds = prefs[Keys.SCHEDULE_INTERVAL] ?: 30,
             slideshowIntervalSeconds = prefs[Keys.SLIDESHOW_INTERVAL] ?: 5,
             shuffleEnabled = prefs[Keys.SHUFFLE_ENABLED] ?: true,
-            quickChangeBubbleEnabled = prefs[Keys.QUICK_CHANGE_BUBBLE] ?: false
+            quickChangeBubbleEnabled = prefs[Keys.QUICK_CHANGE_BUBBLE] ?: false,
+            debugMode = prefs[Keys.DEBUG_MODE] ?: false
         )
     }
 
@@ -187,6 +189,12 @@ class SettingsDataStore @Inject constructor(
     suspend fun updateQuickChangeBubble(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[Keys.QUICK_CHANGE_BUBBLE] = enabled
+        }
+    }
+    
+    suspend fun updateDebugMode(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.DEBUG_MODE] = enabled
         }
     }
 }

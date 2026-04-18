@@ -17,8 +17,9 @@ data class AppSettings(
     val seasonalTags: List<String> = emptyList(),
     val changeHomeScreen: Boolean = true,
     val changeLockScreen: Boolean = true,
-    val scheduleIntervalMinutes: Int = 30,
+    val scheduleIntervalSeconds: Int = 30,
     val slideshowIntervalSeconds: Int = 5,
     val shuffleEnabled: Boolean = true,
-    val quickChangeBubbleEnabled: Boolean = false
+    val quickChangeBubbleEnabled: Boolean = false,
+    val debugMode: Boolean = false
 )
