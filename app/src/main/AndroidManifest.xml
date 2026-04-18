@@ -31,6 +31,9 @@
     
     <!-- Battery optimization -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    
+    <!-- Wake lock for scheduled alarms -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:name=".AutoWallpaperApp"
