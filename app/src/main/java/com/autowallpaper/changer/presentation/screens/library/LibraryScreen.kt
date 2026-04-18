@@ -501,12 +501,12 @@ private fun OnlineGalleryContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // 大分類下拉
-                Box {
+                Box(modifier = Modifier.weight(1f)) {
                     OutlinedTextField(
                         value = categoryGroups.find { it.first == selectedGroup }?.second?.name ?: "選擇大分類",
                         onValueChange = {},
                         readOnly = true,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
                         trailingIcon = {
                             IconButton(onClick = { expandedGroup = true }) {
                                 Icon(Icons.Default.ArrowDropDown, "下拉")
@@ -531,12 +531,12 @@ private fun OnlineGalleryContent(
                 
                 // 小分類下拉
                 val selectedGroupData = categoryGroups.find { it.first == selectedGroup }?.second
-                Box {
+                Box(modifier = Modifier.weight(1f)) {
                     OutlinedTextField(
                         value = selectedCategory?.let { categoryNames[it] ?: it } ?: "選擇小分類",
                         onValueChange = {},
                         readOnly = true,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
                         enabled = selectedGroup != null && selectedGroupData != null,
                         trailingIcon = {
                             IconButton(onClick = { if (selectedGroup != null) expandedCategory = true }) {

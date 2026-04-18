@@ -116,13 +116,6 @@ object GalleryApiService {
     /**
      * 解析分類階層（從新的 hierarchy 格式）
      */
-    data class CategoryHierarchy(
-        val style: CategoryGroup?,
-        val scene: CategoryGroup?,
-        val theme: CategoryGroup?,
-        val country: CategoryGroup?
-    )
-    
     data class CategoryGroup(
         val name: String,
         val icon: String?,
@@ -323,7 +316,7 @@ object GalleryApiService {
             val result = mutableListOf<Category>()
             hierarchy?.forEach { (_, group) ->
                 group.categories?.forEach { item ->
-                    result.add(Category(item.id, item.name, item.count))
+                    result.add(Category(item.id, item.count))
                 }
             }
             return result.sortedBy { it.category }
