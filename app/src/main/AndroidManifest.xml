@@ -27,6 +27,7 @@
     
     <!-- Foreground service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     
     <!-- Battery optimization -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
@@ -75,6 +76,7 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.autowallpaper.changer.ACTION_WALLPAPER_CHANGE" />
+                <action android:name="com.autowallpaper.changer.ACTION_TRIGGER_NOW" />
             </intent-filter>
         </receiver>
 
@@ -82,6 +84,12 @@
         <service
             android:name=".service.FloatingBallService"
             android:exported="false" />
+
+        <!-- Wallpaper Change Service -->
+        <service
+            android:name=".service.WallpaperChangeService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <!-- WorkManager Initializer removed - using custom Configuration.Provider in Application class -->
 

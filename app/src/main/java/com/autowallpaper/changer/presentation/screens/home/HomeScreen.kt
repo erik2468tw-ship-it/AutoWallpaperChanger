@@ -93,9 +93,9 @@ fun HomeScreen(
                 modifier = Modifier.weight(1f)
             )
             QuickActionCard(
-                title = "測試排程",
-                icon = Icons.Default.PlayArrow,
-                onClick = { viewModel.changeHomeScreenNow() },
+                title = "隨機更換",
+                icon = Icons.Default.Shuffle,
+                onClick = { viewModel.changeRandomNow() },
                 modifier = Modifier.weight(1f)
             )
         }

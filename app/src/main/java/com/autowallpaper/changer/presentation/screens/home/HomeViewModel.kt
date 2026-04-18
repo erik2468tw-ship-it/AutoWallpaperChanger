@@ -111,10 +111,17 @@ class HomeViewModel @Inject constructor(
             try {
                 val images = getImagesUseCase.getHomeScreenImages()
                 if (images.isNotEmpty()) {
-                    val image = images.random()
+                    val useRandom = settingsDataStore.settings.first().shuffleEnabled
+                    val image = if (useRandom) images.random() else {
+                        val currentIndex = settingsDataStore.currentHomeIndex.first()
+                        val nextIndex = (currentIndex + 1) % images.size.coerceAtLeast(1)
+                        settingsDataStore.updateCurrentHomeIndex(nextIndex)
+                        images[nextIndex]
+                    }
+                    val mode = if (useRandom) "隨機" else "順序"
                     val result = changeWallpaperUseCase.changeHomeScreen(image.uri)
                     _uiState.update { it.copy(
-                        message = if (result.isSuccess) "主螢幕桌布已更換" else "更換失敗",
+                        message = if (result.isSuccess) "主螢幕桌布已更換($mode)" else "更換失敗",
                         isLoading = false
                     )}
                 } else {
@@ -138,10 +145,17 @@ class HomeViewModel @Inject constructor(
             try {
                 val images = getImagesUseCase.getLockScreenImages()
                 if (images.isNotEmpty()) {
-                    val image = images.random()
+                    val useRandom = settingsDataStore.settings.first().shuffleEnabled
+                    val image = if (useRandom) images.random() else {
+                        val currentIndex = settingsDataStore.currentLockIndex.first()
+                        val nextIndex = (currentIndex + 1) % images.size.coerceAtLeast(1)
+                        settingsDataStore.updateCurrentLockIndex(nextIndex)
+                        images[nextIndex]
+                    }
+                    val mode = if (useRandom) "隨機" else "順序"
                     val result = changeWallpaperUseCase.changeLockScreen(image.uri)
                     _uiState.update { it.copy(
-                        message = if (result.isSuccess) "鎖屏桌布已更換" else "更換失敗",
+                        message = if (result.isSuccess) "鎖屏桌布已更換($mode)" else "更換失敗",
                         isLoading = false
                     )}
                 } else {
@@ -158,30 +172,25 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-    
-    fun testScheduleNow() {
-        _uiState.update { it.copy(message = "執行排程中...") }
-        // 使用 AlarmManager 立即執行一次排程
-        viewModelScope.launch {
-            try {
-                wallpaperScheduler.runNow()
-                _uiState.update { it.copy(message = "排程已觸發，請等待...") }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(message = "錯誤: ${e.message}") }
-            }
-        }
-    }
 
     fun changeBothNow() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, message = null) }
             try {
-                val images = getImagesUseCase.getHomeScreenImages()
-                if (images.isNotEmpty()) {
-                    val image = images.random()
+                val homeImages = getImagesUseCase.getHomeScreenImages()
+                val lockImages = getImagesUseCase.getLockScreenImages()
+                if (homeImages.isNotEmpty() && lockImages.isNotEmpty()) {
+                    val useRandom = settingsDataStore.settings.first().shuffleEnabled
+                    val image = if (useRandom) homeImages.random() else {
+                        val currentIndex = settingsDataStore.currentHomeIndex.first()
+                        val nextIndex = (currentIndex + 1) % homeImages.size.coerceAtLeast(1)
+                        settingsDataStore.updateCurrentHomeIndex(nextIndex)
+                        homeImages[nextIndex]
+                    }
+                    val mode = if (useRandom) "隨機" else "順序"
                     val result = changeWallpaperUseCase.changeBoth(image.uri)
                     _uiState.update { it.copy(
-                        message = if (result.isSuccess) "主螢幕和鎖屏桌布已更換" else "更換失敗",
+                        message = if (result.isSuccess) "主螢幕和鎖屏桌布已更換($mode)" else "更換失敗",
                         isLoading = false
                     )}
                 } else {
